@@ -4,6 +4,8 @@ A VS Code extension for archiving and organizing Copilot Chat history into
 project markdown files, enabling a persistent, searchable knowledge base for
 AI-assisted development sessions.
 
+[中文文档](./README.zh-CN.md)
+
 ---
 
 ## Features
