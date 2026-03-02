@@ -1,2 +1,150 @@
-# chat-history
-Automatic Tools for Archive &amp; Save &amp; Manage Chat Copilot history in Vscode. 
+# AI Archive: Chat History
+
+A VS Code extension for archiving and organizing Copilot Chat history into
+project markdown files, enabling a persistent, searchable knowledge base for
+AI-assisted development sessions.
+
+---
+
+## Features
+
+| Command | Description |
+|---|---|
+| **AI Archive: Save Current Chat** | Prompt for session details and write a structured markdown file |
+| **AI Archive: Open Session Index** | Open (or create) `docs/ai-sessions/README.md` |
+| **AI Archive: Search Archives** | Search all session files and open the matching one |
+
+On first activation the extension also bootstraps `docs/ai-faq.md` with
+starter sections for recurring knowledge.
+
+---
+
+## Quick Start
+
+1. Install the extension (or clone and press **F5** to launch the Extension
+   Development Host).
+2. Open a folder / workspace in VS Code.
+3. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run one of
+   the **AI Archive** commands.
+
+---
+
+## Command Usage
+
+### AI Archive: Save Current Chat
+
+Walks you through a series of input prompts:
+
+- **Topic** *(required)* — becomes the file name (slugified).
+- **Project tag** *(optional)* — e.g. `backend`, `feature/auth`.
+- **Keywords** *(optional)* — comma-separated.
+- **Summary / final decision** *(optional)*.
+- **Action items** *(optional)* — separate multiple items with `; `.
+- **Raw notes** *(optional)* — any additional context.
+
+The session is written to:
+
+```
+docs/ai-sessions/YYYY-MM/<topic>.md
+```
+
+If the file already exists and `aiArchive.appendOnConflict` is `true`
+(default), a separator block is appended rather than overwriting the file.
+
+### AI Archive: Open Session Index
+
+Opens `docs/ai-sessions/README.md`.  The file is created with usage
+instructions and folder-structure conventions if it does not yet exist.
+
+### AI Archive: Search Archives
+
+Prompts for search text, then searches all `*.md` files under
+`docs/ai-sessions/` (and `docs/ai-faq.md`).  Results are shown in a
+QuickPick list with the relative file path and first matching line snippet.
+Selecting a result opens the file and scrolls to the matching line.
+
+---
+
+## Generated Folder / File Structure
+
+```
+<workspace-root>/
+└── docs/
+    ├── ai-faq.md                  ← FAQ / recurring knowledge base
+    └── ai-sessions/
+        ├── README.md              ← session index
+        └── YYYY-MM/
+            └── <topic>.md         ← individual session archive
+```
+
+---
+
+## Configuration
+
+All settings are under the `aiArchive` namespace in VS Code settings:
+
+| Setting | Default | Description |
+|---|---|---|
+| `aiArchive.baseDir` | `"docs"` | Base directory relative to workspace root |
+| `aiArchive.sessionsDirName` | `"ai-sessions"` | Sessions sub-directory name |
+| `aiArchive.faqFileName` | `"ai-faq.md"` | FAQ file name |
+| `aiArchive.appendOnConflict` | `true` | Append to existing file instead of overwriting |
+
+---
+
+## Session File Template
+
+Each session file uses this structure:
+
+```markdown
+# <topic>
+
+**Date:** YYYY-MM-DD HH:MM:SS
+**Project:** <workspace-name>
+**Tag:** <project-tag>
+**Keywords:** <keywords>
+
+---
+
+## Summary / Final Decision
+
+<summary>
+
+---
+
+## Action Items
+
+<action-items>
+
+---
+
+## Raw Notes
+
+<raw-notes>
+```
+
+---
+
+## Limitations
+
+- The extension does **not** directly access Copilot Chat API internals or
+  extract conversation logs programmatically — Copilot does not expose a
+  public API for that.
+- All session content is manually entered via input prompts.  This is
+  intentional: it keeps the workflow reliable and IDE-version-independent.
+- Searching is plain-text, case-insensitive, and returns the first matching
+  line per file.
+
+---
+
+## Development
+
+```bash
+npm install
+npm run compile   # one-off build
+npm run watch     # incremental watch build
+npm run lint      # ESLint
+```
+
+Press **F5** in VS Code to open an Extension Development Host for manual
+testing.
