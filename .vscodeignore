@@ -1,4 +1,6 @@
-out
+src
+tsconfig.json
+.eslintrc.json
 node_modules
 .vscode-test/
 *.vsix
