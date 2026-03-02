@@ -1,0 +1,81 @@
+{
+  "name": "chat-history",
+  "displayName": "AI Archive: Chat History",
+  "description": "Archive and organize Copilot Chat history into project markdown files.",
+  "version": "0.1.0",
+  "publisher": "zny05",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "copilot",
+    "chat",
+    "archive",
+    "history",
+    "notes"
+  ],
+  "activationEvents": [
+    "onCommand:aiArchive.saveCurrentChat",
+    "onCommand:aiArchive.openSessionIndex",
+    "onCommand:aiArchive.searchArchives"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aiArchive.saveCurrentChat",
+        "title": "AI Archive: Save Current Chat"
+      },
+      {
+        "command": "aiArchive.openSessionIndex",
+        "title": "AI Archive: Open Session Index"
+      },
+      {
+        "command": "aiArchive.searchArchives",
+        "title": "AI Archive: Search Archives"
+      }
+    ],
+    "configuration": {
+      "title": "AI Archive",
+      "properties": {
+        "aiArchive.baseDir": {
+          "type": "string",
+          "default": "docs",
+          "description": "Base directory for AI Archive files (relative to workspace root)."
+        },
+        "aiArchive.sessionsDirName": {
+          "type": "string",
+          "default": "ai-sessions",
+          "description": "Directory name for session archives under baseDir."
+        },
+        "aiArchive.faqFileName": {
+          "type": "string",
+          "default": "ai-faq.md",
+          "description": "Filename for the FAQ knowledge base under baseDir."
+        },
+        "aiArchive.appendOnConflict": {
+          "type": "boolean",
+          "default": true,
+          "description": "If a session file already exists, append a separator block instead of overwriting."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}
