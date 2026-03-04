@@ -13,6 +13,123 @@ import {
   readFileOrNull,
 } from '../utils/fileUtils';
 
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeClipboardText(text: string): string {
+  return text.replace(/\r\n/g, '\n').trim();
+}
+
+async function tryFocusChatView(): Promise<void> {
+  const focusCommands = [
+    'workbench.panel.chat.view.copilot.focus',
+    'workbench.action.chat.open',
+    'workbench.action.chat.focus',
+  ];
+
+  for (const commandId of focusCommands) {
+    try {
+      await vscode.commands.executeCommand(commandId);
+      await sleep(60);
+      return;
+    } catch {
+      continue;
+    }
+  }
+}
+
+async function tryCaptureChatTranscript(): Promise<string> {
+  const candidateCommands = [
+    'workbench.action.chat.copyAll',
+    'workbench.action.chat.copyAllFromSession',
+    'github.copilot.chat.copyAll',
+    'github.copilot.copyAll',
+    'workbench.action.chat.copyLastResponse',
+  ];
+  const availableCommands = new Set(await vscode.commands.getCommands(true));
+
+  const originalClipboard = await vscode.env.clipboard.readText();
+  const marker = `__ai_archive_probe_${Date.now()}_${Math.random().toString(36).slice(2)}__`;
+
+  for (const commandId of candidateCommands) {
+    if (!availableCommands.has(commandId)) {
+      continue;
+    }
+
+    try {
+      await tryFocusChatView();
+      await vscode.env.clipboard.writeText(marker);
+      await vscode.commands.executeCommand(commandId);
+      await sleep(280);
+      const after = normalizeClipboardText(await vscode.env.clipboard.readText());
+
+      if (after && after !== marker) {
+        await vscode.env.clipboard.writeText(originalClipboard);
+        return after;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  await vscode.env.clipboard.writeText(originalClipboard);
+  return '';
+}
+
+async function resolveTranscript(options: {
+  autoCaptureFromChat: boolean;
+  requireTranscript: boolean;
+}): Promise<string | undefined> {
+  let transcript = '';
+
+  if (options.autoCaptureFromChat) {
+    transcript = await tryCaptureChatTranscript();
+    if (transcript) {
+      return transcript;
+    }
+  }
+
+  if (!options.requireTranscript) {
+    return '';
+  }
+
+  while (!transcript) {
+    const choice = await vscode.window.showWarningMessage(
+      'Could not auto-capture Copilot chat transcript. Keep the Copilot Chat panel focused and choose Retry, or choose Paste Clipboard.',
+      { modal: true },
+      'Retry Capture',
+      'Paste Clipboard'
+    );
+
+    if (!choice) {
+      return undefined;
+    }
+
+    if (choice === 'Retry Capture') {
+      transcript = await tryCaptureChatTranscript();
+      if (transcript) {
+        return transcript;
+      }
+      continue;
+    }
+
+    if (choice === 'Paste Clipboard') {
+      const clip = normalizeClipboardText(await vscode.env.clipboard.readText());
+      if (clip) {
+        return clip;
+      }
+
+      vscode.window.showWarningMessage(
+        'Clipboard is empty. Copy the Copilot chat first, then try again.'
+      );
+      continue;
+    }
+  }
+
+  return transcript;
+}
+
 /**
  * Builds the markdown content for a new session entry.
  */
@@ -22,6 +139,7 @@ function buildSessionBlock(
   keywords: string,
   summary: string,
   actionItems: string,
+  transcript: string,
   rawNotes: string,
   projectName: string,
   now: Date
@@ -43,6 +161,12 @@ ${summary || '(no summary provided)'}
 ## Action Items
 
 ${actionItems || '(none)'}
+
+---
+
+## Copilot Chat Transcript
+
+${transcript || '(not captured)'}
 
 ---
 
@@ -69,6 +193,18 @@ export async function saveCurrentChat(): Promise<void> {
     root = requireWorkspaceRoot();
   } catch (err) {
     vscode.window.showErrorMessage((err as Error).message);
+    return;
+  }
+
+  const config = vscode.workspace.getConfiguration('aiArchive');
+  const autoCaptureFromChat = config.get<boolean>('autoCaptureFromChat', true);
+  const requireTranscript = config.get<boolean>('requireTranscript', true);
+
+  const autoCapturedTranscript = await resolveTranscript({
+    autoCaptureFromChat,
+    requireTranscript,
+  });
+  if (autoCapturedTranscript === undefined) {
     return;
   }
 
@@ -133,7 +269,6 @@ export async function saveCurrentChat(): Promise<void> {
 
   // 6. Determine file path
   const now = new Date();
-  const config = vscode.workspace.getConfiguration('aiArchive');
   const baseDir = config.get<string>('baseDir', getBaseDir());
   const sessionsDirName = config.get<string>('sessionsDirName', getSessionsDirName());
   const monthDir = path.join(root, baseDir, sessionsDirName, yearMonth(now));
@@ -149,6 +284,7 @@ export async function saveCurrentChat(): Promise<void> {
     keywords?.trim() ?? '',
     summary?.trim() ?? '',
     actionItems?.trim() ?? '',
+    autoCapturedTranscript.trim(),
     rawNotes?.trim() ?? '',
     projectName,
     now
@@ -171,4 +307,10 @@ export async function saveCurrentChat(): Promise<void> {
   vscode.window.showInformationMessage(
     `Session archived: ${path.relative(root, filePath)}`
   );
+
+  if (!autoCapturedTranscript && autoCaptureFromChat) {
+    vscode.window.showWarningMessage(
+      'Chat transcript was not auto-captured. Keep Copilot Chat focused and use Retry Capture, or copy/paste it via clipboard.'
+    );
+  }
 }

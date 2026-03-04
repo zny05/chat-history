@@ -54,6 +54,9 @@ bash scripts/install-local-vscode.sh
 - **行动项** *(可选)* — 多个条目用 `; ` 分隔。
 - **原始备注** *(可选)* — 任何附加上下文。
 
+默认情况下，命令会先尝试自动抓取当前 Copilot Chat 对话内容。
+若抓取失败，会进入重试流程（`Retry Capture` / `Paste Clipboard`），避免误保存空归档。
+
 会话文件将写入：
 
 ```
@@ -96,6 +99,8 @@ docs/ai-sessions/YYYY-MM/<topic>.md
 | `aiArchive.sessionsDirName` | `"ai-sessions"` | 基础目录下的会话子目录名称 |
 | `aiArchive.faqFileName` | `"ai-faq.md"` | 基础目录下的 FAQ 文件名 |
 | `aiArchive.appendOnConflict` | `true` | 文件已存在时追加分隔块而非覆盖 |
+| `aiArchive.autoCaptureFromChat` | `true` | 在输入流程前尝试自动抓取 Copilot Chat 内容 |
+| `aiArchive.requireTranscript` | `true` | 抓取失败时要求重试/粘贴流程，防止空记录 |
 
 ---
 
@@ -135,7 +140,8 @@ docs/ai-sessions/YYYY-MM/<topic>.md
 ## 限制
 
 - 该扩展**不会**直接访问 Copilot Chat API 内部或以编程方式提取对话日志 — Copilot 未提供公开的 API 来实现这一点。
-- 所有会话内容均通过输入提示手动输入。这是有意为之的：保持工作流的可靠性，并与 IDE 版本无关。
+- 当前对话抓取采用“尽力而为”方式（VS Code 聊天复制命令 + 剪贴板流程），并非稳定公开 API。
+- 若你的 VS Code / Copilot 版本不支持聊天复制命令，请先手动复制对话，再在保存流程中选择 `Paste Clipboard`。
 - 搜索为纯文本、不区分大小写，每个文件返回第一个匹配行。
 
 ---

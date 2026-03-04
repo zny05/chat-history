@@ -59,6 +59,9 @@ Walks you through a series of input prompts:
 - **Action items** *(optional)* — separate multiple items with `; `.
 - **Raw notes** *(optional)* — any additional context.
 
+By default, the command first tries to auto-capture the active Copilot Chat transcript.
+If capture fails, it opens a retry flow (`Retry Capture` / `Paste Clipboard`) so you don't accidentally save an empty archive.
+
 The session is written to:
 
 ```
@@ -106,6 +109,8 @@ All settings are under the `aiArchive` namespace in VS Code settings:
 | `aiArchive.sessionsDirName` | `"ai-sessions"` | Sessions sub-directory name |
 | `aiArchive.faqFileName` | `"ai-faq.md"` | FAQ file name |
 | `aiArchive.appendOnConflict` | `true` | Append to existing file instead of overwriting |
+| `aiArchive.autoCaptureFromChat` | `true` | Try to auto-capture Copilot Chat transcript before prompts |
+| `aiArchive.requireTranscript` | `true` | If capture fails, require retry/paste flow before saving |
 
 ---
 
@@ -145,10 +150,10 @@ Each session file uses this structure:
 ## Limitations
 
 - The extension does **not** directly access Copilot Chat API internals or
-  extract conversation logs programmatically — Copilot does not expose a
-  public API for that.
-- All session content is manually entered via input prompts.  This is
-  intentional: it keeps the workflow reliable and IDE-version-independent.
+-  extract conversation logs through a stable public API — current capture is
+  best-effort via VS Code chat copy commands / clipboard flow.
+- If your VS Code/Copilot build does not support chat copy commands, use
+  `Paste Clipboard` in the save flow after copying chat content manually.
 - Searching is plain-text, case-insensitive, and returns the first matching
   line per file.
 

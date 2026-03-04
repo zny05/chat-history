@@ -2,7 +2,7 @@
   "name": "chat-history",
   "displayName": "AI Archive: Chat History",
   "description": "Archive and organize Copilot Chat history into project markdown files.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "zny05",
   "engines": {
     "vscode": "^1.85.0"
@@ -64,6 +64,16 @@
           "type": "boolean",
           "default": true,
           "description": "If a session file already exists, append a separator block instead of overwriting."
+        },
+        "aiArchive.autoCaptureFromChat": {
+          "type": "boolean",
+          "default": true,
+          "description": "Attempt to auto-capture Copilot Chat transcript before saving."
+        },
+        "aiArchive.requireTranscript": {
+          "type": "boolean",
+          "default": true,
+          "description": "When transcript capture fails, require retry/paste flow before saving. Disable to allow saving without transcript."
         }
       }
     }
