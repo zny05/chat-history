@@ -29,6 +29,21 @@ starter sections for recurring knowledge.
 3. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run one of
    the **AI Archive** commands.
 
+### One-command local install (daily VS Code)
+
+From the project root, run:
+
+```bash
+bash scripts/install-local-vscode.sh
+```
+
+This script will:
+
+- Ensure `node` / `npm` are available (installs LTS via `nvm` if needed)
+- Install dependencies (`npm ci` when `package-lock.json` exists)
+- Build and package the extension (`npm run package`)
+- Install the generated `.vsix` into your local VS Code (`code` or `code-insiders`)
+
 ---
 
 ## Command Usage

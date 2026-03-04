@@ -24,6 +24,21 @@
 2. 在 VS Code 中打开一个文件夹 / 工作区。
 3. 打开命令面板（`Ctrl+Shift+P` / `Cmd+Shift+P`），运行任意 **AI Archive** 命令。
 
+### 一键安装到日常 VS Code
+
+在项目根目录执行：
+
+```bash
+bash scripts/install-local-vscode.sh
+```
+
+该脚本会自动完成：
+
+- 检查 `node` / `npm`（若缺失则通过 `nvm` 安装 LTS）
+- 安装依赖（存在 `package-lock.json` 时使用 `npm ci`）
+- 构建并打包扩展（`npm run package`）
+- 将生成的 `.vsix` 安装到本机 VS Code（`code` 或 `code-insiders`）
+
 ---
 
 ## 命令用法
