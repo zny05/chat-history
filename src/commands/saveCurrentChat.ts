@@ -306,10 +306,11 @@ export async function saveCurrentChat(): Promise<void> {
   const doc = await vscode.workspace.openTextDocument(filePath);
   await vscode.window.showTextDocument(doc);
 
-  // Display both month folder and filename for clarity (avoids encoding issues)
-  const relativePath = path.relative(root, filePath);
-  const displayName = relativePath.split(path.sep).slice(-2).join(' / ');
-  
+  // Extract just the month folder and filename directly (bypassing path.relative encoding issues)
+  const displayFileName = path.basename(filePath);  // e.g., "my-topic.md"
+  const displayMonthFolder = path.basename(path.dirname(filePath));  // e.g., "2026-03"
+  const displayName = `${displayMonthFolder} / ${displayFileName}`;
+
   vscode.window.showInformationMessage(
     `✓ Session archived: ${displayName}`
   );

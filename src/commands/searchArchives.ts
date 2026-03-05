@@ -38,12 +38,10 @@ function searchFiles(
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].toLowerCase().includes(lowerQuery)) {
-        // Extract month folder and filename for clean display (avoids encoding issues)
-        const pathParts = path.relative(root, filePath).split(path.sep);
-        const displayLabel =
-          pathParts.length >= 2
-            ? `${pathParts[pathParts.length - 2]} / ${pathParts[pathParts.length - 1]}`
-            : path.basename(filePath);
+        // Extract month folder and filename directly (avoiding path.relative encoding)
+        const fileName = path.basename(filePath);
+        const monthFolder = path.basename(path.dirname(filePath));
+        const displayLabel = `${monthFolder} / ${fileName}`;
         
         results.push({
           label: displayLabel,

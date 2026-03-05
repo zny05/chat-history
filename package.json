@@ -2,7 +2,7 @@
   "name": "chat-history",
   "displayName": "AI Archive: Chat History",
   "description": "Archive and organize Copilot Chat history into project markdown files.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "zny05",
   "icon": "chat-history.png",
   "engines": {

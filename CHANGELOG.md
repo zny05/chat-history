@@ -2,6 +2,14 @@
 
 更新日志（中英双语）
 
+## [1.2.1] - 2026-03-05
+
+### Fixed / 修复
+- Completely bypassed `path.relative()` in display logic to eliminate Unicode encoding issues in information messages.
+  完全绕过 `path.relative()` 在显示逻辑中的使用，消除信息提示中 Unicode 编码问题。
+- Now directly uses `path.basename()` to extract month folder and filename, ensuring proper display of Chinese characters.
+  改用 `path.basename()` 直接提取月份文件夹和文件名，确保中文字符正确显示。
+
 ## [1.2.0] - 2026-03-05
 
 ### Fixed / 修复
