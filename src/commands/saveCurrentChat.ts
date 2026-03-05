@@ -306,8 +306,12 @@ export async function saveCurrentChat(): Promise<void> {
   const doc = await vscode.workspace.openTextDocument(filePath);
   await vscode.window.showTextDocument(doc);
 
+  // Display both month folder and filename for clarity (avoids encoding issues)
+  const relativePath = path.relative(root, filePath);
+  const displayName = relativePath.split(path.sep).slice(-2).join(' / ');
+  
   vscode.window.showInformationMessage(
-    `Session archived: ${path.relative(root, filePath)}`
+    `✓ Session archived: ${displayName}`
   );
 
   if (!autoCapturedTranscript && autoCaptureFromChat) {

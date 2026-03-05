@@ -38,10 +38,15 @@ function searchFiles(
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].toLowerCase().includes(lowerQuery)) {
-        // One entry per file in the quick-pick list (first match).
-        // The line number is shown so the user knows where the match is.
+        // Extract month folder and filename for clean display (avoids encoding issues)
+        const pathParts = path.relative(root, filePath).split(path.sep);
+        const displayLabel =
+          pathParts.length >= 2
+            ? `${pathParts[pathParts.length - 2]} / ${pathParts[pathParts.length - 1]}`
+            : path.basename(filePath);
+        
         results.push({
-          label: path.relative(root, filePath),
+          label: displayLabel,
           description: `line ${i + 1}: ${lines[i].trim().substring(0, 100)}`,
           filePath,
           lineIndex: i,

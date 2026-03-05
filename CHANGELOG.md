@@ -2,6 +2,14 @@
 
 更新日志（中英双语）
 
+## [1.2.0] - 2026-03-05
+
+### Fixed / 修复
+- Fixed message display encoding when showing archived session file paths containing Chinese characters.
+  修复包含中文字符的会话文件路径在信息提示中显示为 URL 编码（%XX%XX...）的问题。
+- Improved search results display to show only month and filename (e.g., "2026-03 / topic.md") for better readability.
+  优化搜索结果显示，仅显示月份和文件名（如"2026-03 / topic.md"）以提升可读性。
+
 ## [1.1.0] - 2026-03-05
 
 ### Fixed / 修复
