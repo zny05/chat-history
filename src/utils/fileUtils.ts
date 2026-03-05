@@ -51,13 +51,28 @@ export function requireWorkspaceRoot(): string {
  * Converts a string into a URL/file-system friendly slug.
  */
 export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
+  const trimmed = text.trim();
+
+  let decoded = trimmed;
+  if (/%[0-9A-Fa-f]{2}/.test(trimmed)) {
+    try {
+      decoded = decodeURIComponent(trimmed);
+    } catch {
+      try {
+        decoded = decodeURI(trimmed);
+      } catch {
+        decoded = trimmed;
+      }
+    }
+  }
+
+  return decoded
+    .normalize('NFKC')
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, ' ')
     .replace(/[\s_]+/g, '-')
     .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^[-.]+|[-.]+$/g, '')
+    .slice(0, 120);
 }
 
 /**

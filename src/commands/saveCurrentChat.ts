@@ -272,7 +272,9 @@ export async function saveCurrentChat(): Promise<void> {
   const baseDir = config.get<string>('baseDir', getBaseDir());
   const sessionsDirName = config.get<string>('sessionsDirName', getSessionsDirName());
   const monthDir = path.join(root, baseDir, sessionsDirName, yearMonth(now));
-  const fileName = `${slugify(topic.trim())}.md`;
+  const topicSlug = slugify(topic.trim());
+  const fallbackName = `session-${localDateTime(now).replace(/[\s:]/g, '-')}`;
+  const fileName = `${topicSlug || fallbackName}.md`;
   const filePath = path.join(monthDir, fileName);
 
   // 7. Build content
