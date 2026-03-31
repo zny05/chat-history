@@ -2,6 +2,12 @@
 
 更新日志（中英双语）
 
+## [2.0.0] - 2026-03-31
+
+### Fixed / 修复
+- Fixed URI-encoded Chinese characters in local file paths within archived chat transcripts. Paths like `%E4%B8%AD%E6%96%87` are now correctly decoded to original Chinese text before saving.
+  修复归档对话转录中本地文件路径的中文 URI 编码问题。保存前会将路径中的 `%E4%B8%AD%E6%96%87` 等编码正确还原为中文。
+
 ## [1.2.1] - 2026-03-05
 
 ### Fixed / 修复

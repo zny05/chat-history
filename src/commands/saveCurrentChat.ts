@@ -21,6 +21,20 @@ function normalizeClipboardText(text: string): string {
   return text.replace(/\r\n/g, '\n').trim();
 }
 
+/**
+ * Decodes percent-encoded sequences (e.g. %E4%B8%AD → 中) commonly
+ * found in URI-style paths copied from VS Code chat panels.
+ */
+function decodeUriEncodedPaths(text: string): string {
+  return text.replace(/(%[0-9A-Fa-f]{2})+/g, (match) => {
+    try {
+      return decodeURIComponent(match);
+    } catch {
+      return match;
+    }
+  });
+}
+
 async function tryFocusChatView(): Promise<void> {
   const focusCommands = [
     'workbench.panel.chat.view.copilot.focus',
@@ -286,7 +300,7 @@ export async function saveCurrentChat(): Promise<void> {
     keywords?.trim() ?? '',
     summary?.trim() ?? '',
     actionItems?.trim() ?? '',
-    autoCapturedTranscript.trim(),
+    decodeUriEncodedPaths(autoCapturedTranscript.trim()),
     rawNotes?.trim() ?? '',
     projectName,
     now
