@@ -2,11 +2,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {
   getBaseDir,
-  getSessionsDirName,
   getAppendOnConflict,
   requireWorkspaceRoot,
   slugify,
-  yearMonth,
+  fileTimestamp,
   localDateTime,
   writeFile,
   appendFile,
@@ -297,12 +296,10 @@ export async function saveCurrentChat(): Promise<void> {
   // 8. Determine file path
   const now = new Date();
   const baseDir = config.get<string>('baseDir', getBaseDir());
-  const sessionsDirName = config.get<string>('sessionsDirName', getSessionsDirName());
-  const monthDir = path.join(root, baseDir, sessionsDirName, yearMonth(now));
-  const topicSlug = slugify(topic.trim());
-  const fallbackName = `session-${localDateTime(now).replace(/[\s:]/g, '-')}`;
-  const fileName = `${topicSlug || fallbackName}.md`;
-  const filePath = path.join(monthDir, fileName);
+  const topicSlug = slugify(topic.trim()).slice(0, 40).replace(/-+$/, '');
+  const timestamp = fileTimestamp(now);
+  const fileName = `${timestamp}_${topicSlug || 'session'}.md`;
+  const filePath = path.join(root, baseDir, fileName);
 
   // 9. Build content
   const block = buildSessionBlock(
@@ -331,13 +328,8 @@ export async function saveCurrentChat(): Promise<void> {
   const doc = await vscode.workspace.openTextDocument(filePath);
   await vscode.window.showTextDocument(doc);
 
-  // Extract just the month folder and filename directly (bypassing path.relative encoding issues)
-  const displayFileName = path.basename(filePath);  // e.g., "my-topic.md"
-  const displayMonthFolder = path.basename(path.dirname(filePath));  // e.g., "2026-03"
-  const displayName = `${displayMonthFolder} / ${displayFileName}`;
-
   vscode.window.showInformationMessage(
-    `✓ Session archived: ${displayName}`
+    `✓ Session archived: ${fileName}`
   );
 
   if (!autoCapturedTranscript && autoCaptureFromChat) {

@@ -3,22 +3,23 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {
   getBaseDir,
-  getSessionsDirName,
   requireWorkspaceRoot,
   writeFile,
-  readFileOrNull,
   findMarkdownFiles,
 } from '../utils/fileUtils';
 
 const INDEX_HEADER = `# AI Sessions — Index
 
 > This directory contains archived Copilot/AI chat sessions for this project.
-> Files are organised by month: \`YYYY-MM/<topic>.md\`.
+> Files are named: \`yyyy_mm_dd_hhmmss_topic.md\` (saved directly in \`docs/\`).
 > **This index is auto-generated each time the command is run.**
 
 ---
 
 `;
+
+/** Matches timestamped session filenames: 2026_03_31_154815_topic.md */
+const SESSION_FILE_RE = /^\d{4}_\d{2}_\d{2}_\d{6}_.*\.md$/;
 
 /**
  * Extracts lightweight metadata from a session markdown file's YAML-like header.
@@ -52,10 +53,16 @@ function extractSessionMeta(filePath: string): {
 /**
  * Builds a full session index with a table of all archived sessions.
  */
-function buildSessionIndex(sessionsDir: string): string {
-  const mdFiles = findMarkdownFiles(sessionsDir).filter(
-    (f) => path.basename(f).toLowerCase() !== 'readme.md'
-  );
+function buildSessionIndex(docsDir: string): string {
+  // Only include timestamped session files directly in docsDir (non-recursive)
+  const mdFiles: string[] = [];
+  if (fs.existsSync(docsDir)) {
+    for (const entry of fs.readdirSync(docsDir, { withFileTypes: true })) {
+      if (entry.isFile() && SESSION_FILE_RE.test(entry.name)) {
+        mdFiles.push(path.join(docsDir, entry.name));
+      }
+    }
+  }
 
   if (mdFiles.length === 0) {
     return (
@@ -75,10 +82,8 @@ function buildSessionIndex(sessionsDir: string): string {
   body += `|------|-------|-----|----------|\n`;
 
   for (const { file, meta } of entries) {
-    const monthFolder = path.basename(path.dirname(file));
     const fileName = path.basename(file);
-    const relPath = `${monthFolder}/${fileName}`;
-    const displayTopic = `[${meta!.topic}](${relPath})`;
+    const displayTopic = `[${meta!.topic}](${fileName})`;
     body += `| ${meta!.date || '-'} | ${displayTopic} | ${meta!.tag || '-'} | ${meta!.keywords || '-'} |\n`;
   }
 
@@ -103,12 +108,11 @@ export async function openSessionIndex(): Promise<void> {
 
   const config = vscode.workspace.getConfiguration('aiArchive');
   const baseDir = config.get<string>('baseDir', getBaseDir());
-  const sessionsDirName = config.get<string>('sessionsDirName', getSessionsDirName());
-  const sessionsDir = path.join(root, baseDir, sessionsDirName);
-  const indexPath = path.join(sessionsDir, 'README.md');
+  const docsDir = path.join(root, baseDir);
+  const indexPath = path.join(docsDir, 'ai-sessions-index.md');
 
   // Always regenerate from current session files
-  const indexContent = buildSessionIndex(sessionsDir);
+  const indexContent = buildSessionIndex(docsDir);
   writeFile(indexPath, indexContent);
 
   const doc = await vscode.workspace.openTextDocument(indexPath);

@@ -85,6 +85,19 @@ export function yearMonth(date: Date): string {
 }
 
 /**
+ * Returns a filesystem-safe timestamp string: yyyy_mm_dd_hhmmss
+ */
+export function fileTimestamp(date: Date): string {
+  const y = date.getFullYear();
+  const mo = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const mi = String(date.getMinutes()).padStart(2, '0');
+  const s = String(date.getSeconds()).padStart(2, '0');
+  return `${y}_${mo}_${d}_${h}${mi}${s}`;
+}
+
+/**
  * Returns an ISO-8601-like local datetime string (no timezone).
  */
 export function localDateTime(date: Date): string {

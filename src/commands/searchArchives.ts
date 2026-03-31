@@ -3,11 +3,13 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {
   getBaseDir,
-  getSessionsDirName,
   getFaqFileName,
   requireWorkspaceRoot,
   findMarkdownFiles,
 } from '../utils/fileUtils';
+
+/** Matches timestamped session filenames saved directly in docs/ */
+const SESSION_FILE_RE = /^\d{4}_\d{2}_\d{2}_\d{6}_.*\.md$/;
 
 interface SearchResult {
   label: string;
@@ -83,8 +85,7 @@ function searchFiles(
     }
     const lines = content.split('\n');
     const fileName = path.basename(filePath);
-    const monthFolder = path.basename(path.dirname(filePath));
-    const displayLabel = `${monthFolder} / ${fileName}`;
+    const displayLabel = fileName;
 
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].toLowerCase().includes(lowerQuery)) {
@@ -117,13 +118,20 @@ export async function searchArchives(): Promise<void> {
 
   const config = vscode.workspace.getConfiguration('aiArchive');
   const baseDir = config.get<string>('baseDir', getBaseDir());
-  const sessionsDirName = config.get<string>('sessionsDirName', getSessionsDirName());
   const faqFileName = config.get<string>('faqFileName', getFaqFileName());
 
-  const sessionsDir = path.join(root, baseDir, sessionsDirName);
-  const faqPath = path.join(root, baseDir, faqFileName);
+  const docsDir = path.join(root, baseDir);
+  const faqPath = path.join(docsDir, faqFileName);
 
-  const mdFiles = findMarkdownFiles(sessionsDir);
+  // Only include timestamped session files (non-recursive, directly in docs/)
+  const mdFiles: string[] = [];
+  if (fs.existsSync(docsDir)) {
+    for (const entry of fs.readdirSync(docsDir, { withFileTypes: true })) {
+      if (entry.isFile() && SESSION_FILE_RE.test(entry.name)) {
+        mdFiles.push(path.join(docsDir, entry.name));
+      }
+    }
+  }
   if (fs.existsSync(faqPath)) {
     mdFiles.push(faqPath);
   }

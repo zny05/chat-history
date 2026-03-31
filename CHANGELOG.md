@@ -2,6 +2,18 @@
 
 更新日志（中英双语）
 
+## [3.0.1] - 2026-04-01
+
+### Changed / 变更
+- Session files are now saved directly in `docs/` (no more `ai-sessions/YYYY-MM/` subdirectories).
+  对话记录现在直接保存在 `docs/` 目录下，不再创建 `ai-sessions/YYYY-MM/` 子目录。
+- File names use the format `yyyy_mm_dd_hhmmss_short-topic.md` (max 40-char slug), eliminating long unmaintainable filenames.
+  文件名采用 `yyyy_mm_dd_hhmmss_简短主题.md` 格式（主题部分最多 40 个字符），避免文件名过长。
+- Session index is now regenerated as `docs/ai-sessions-index.md`.
+  会话索引现在生成为 `docs/ai-sessions-index.md`。
+- Search Archives now scans `docs/` directly for timestamped session files.
+  搜索归档现在直接扫描 `docs/` 目录中的时间戳命名文件。
+
 ## [3.0.0] - 2026-03-31
 
 ### Added / 新增
