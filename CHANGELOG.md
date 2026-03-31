@@ -2,6 +2,18 @@
 
 更新日志（中英双语）
 
+## [3.0.0] - 2026-03-31
+
+### Added / 新增
+- Auto-extract metadata from chat transcripts: topic, project tag, keywords, summary, and action items are now pre-filled when saving a session — no manual typing required.
+  保存对话时自动从转录内容提取元数据（主题、项目标签、关键词、摘要、行动项），所有字段均自动预填充，无需手动输入。
+- Session index (`Open Session Index`) now auto-scans all archived files and generates a live summary table sorted by date.
+  会话索引（Open Session Index）现在自动扫描所有归档文件，生成按日期倒序排列的实时汇总表格。
+- Search (`Search Archives`) now collects keywords/tags from all sessions as QuickPick suggestions before prompting free-text input.
+  搜索（Search Archives）现在从所有会话提取关键词/标签作为 QuickPick 候选项，同时支持自定义搜索词。
+- Search now returns all matching lines per file, not just the first match.
+  搜索结果改为返回每个文件的所有匹配行，而非仅第一个匹配。
+
 ## [2.0.0] - 2026-03-31
 
 ### Fixed / 修复

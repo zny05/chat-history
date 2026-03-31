@@ -12,6 +12,7 @@ import {
   appendFile,
   readFileOrNull,
 } from '../utils/fileUtils';
+import { analyzeTranscript } from '../utils/transcriptAnalyzer';
 
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
@@ -222,20 +223,27 @@ export async function saveCurrentChat(): Promise<void> {
     return;
   }
 
-  // 2. Prompt for topic (required)
+  // ── Auto-extract metadata from the transcript ──────────────────────
+  const analysis = analyzeTranscript(autoCapturedTranscript);
+  const projectName =
+    vscode.workspace.workspaceFolders?.[0]?.name ?? path.basename(root);
+
+  // 2. Prompt for topic — pre-filled with extracted topic
   const topic = await vscode.window.showInputBox({
-    prompt: 'Session title / topic',
+    prompt: 'Session title / topic  (auto-detected — press Enter to accept)',
+    value: analysis.topic,
     placeHolder: 'e.g. Refactor auth module',
     ignoreFocusOut: true,
     validateInput: (v) => (v.trim() ? undefined : 'Topic is required'),
   });
   if (topic === undefined) {
-    return; // user cancelled
+    return;
   }
 
-  // 3. Prompt for optional project tag
+  // 3. Prompt for project tag — pre-filled
   const projectTag = await vscode.window.showInputBox({
-    prompt: 'Project tag (optional)',
+    prompt: 'Project tag  (auto-detected — press Enter to accept, or clear to skip)',
+    value: analysis.projectTag,
     placeHolder: 'e.g. backend, feature/auth',
     ignoreFocusOut: true,
   });
@@ -243,9 +251,10 @@ export async function saveCurrentChat(): Promise<void> {
     return;
   }
 
-  // 4. Prompt for keywords
+  // 4. Keywords — pre-filled
   const keywords = await vscode.window.showInputBox({
-    prompt: 'Keywords (comma-separated, optional)',
+    prompt: 'Keywords  (auto-detected — press Enter to accept, or edit)',
+    value: analysis.keywords,
     placeHolder: 'e.g. authentication, JWT, middleware',
     ignoreFocusOut: true,
   });
@@ -253,9 +262,10 @@ export async function saveCurrentChat(): Promise<void> {
     return;
   }
 
-  // 5. Prompt for summary/notes
+  // 5. Summary — pre-filled
   const summary = await vscode.window.showInputBox({
-    prompt: 'Summary / final decision',
+    prompt: 'Summary / final decision  (auto-detected — press Enter to accept)',
+    value: analysis.summary,
     placeHolder: 'Brief description of what was decided or learned',
     ignoreFocusOut: true,
   });
@@ -263,8 +273,10 @@ export async function saveCurrentChat(): Promise<void> {
     return;
   }
 
+  // 6. Action items — pre-filled
   const actionItems = await vscode.window.showInputBox({
-    prompt: 'Action items (use "; " to separate multiple items, optional)',
+    prompt: 'Action items  (auto-detected — press Enter to accept, use "; " to separate)',
+    value: analysis.actionItems,
     placeHolder: 'e.g. Write unit tests; Update docs',
     ignoreFocusOut: true,
   });
@@ -272,6 +284,7 @@ export async function saveCurrentChat(): Promise<void> {
     return;
   }
 
+  // 7. Raw notes — leave empty (no meaningful auto value)
   const rawNotes = await vscode.window.showInputBox({
     prompt: 'Raw notes (optional)',
     placeHolder: 'Any additional context or observations',
@@ -281,7 +294,7 @@ export async function saveCurrentChat(): Promise<void> {
     return;
   }
 
-  // 6. Determine file path
+  // 8. Determine file path
   const now = new Date();
   const baseDir = config.get<string>('baseDir', getBaseDir());
   const sessionsDirName = config.get<string>('sessionsDirName', getSessionsDirName());
@@ -291,9 +304,7 @@ export async function saveCurrentChat(): Promise<void> {
   const fileName = `${topicSlug || fallbackName}.md`;
   const filePath = path.join(monthDir, fileName);
 
-  // 7. Build content
-  const projectName =
-    vscode.workspace.workspaceFolders?.[0]?.name ?? path.basename(root);
+  // 9. Build content
   const block = buildSessionBlock(
     topic.trim(),
     projectTag?.trim() ?? '',
@@ -306,7 +317,7 @@ export async function saveCurrentChat(): Promise<void> {
     now
   );
 
-  // 8. Write or append
+  // 10. Write or append
   const existing = readFileOrNull(filePath);
   const appendOnConflict = getAppendOnConflict();
 
@@ -316,7 +327,7 @@ export async function saveCurrentChat(): Promise<void> {
     writeFile(filePath, block);
   }
 
-  // 9. Open the file
+  // 11. Open the file
   const doc = await vscode.workspace.openTextDocument(filePath);
   await vscode.window.showTextDocument(doc);
 
