@@ -14,6 +14,12 @@
 | **AI Archive: Open Session Index** | 打开（或创建）`docs/ai-sessions/README.md` |
 | **AI Archive: Search Archives** | 搜索所有会话文件并打开匹配的文件 |
 
+安全默认策略：
+
+- 保存会话时会自动把归档目标目录写入 `.gitignore`。
+- 保存前会对对话中的敏感值进行掩码（如 `password`、`token`、`api key` 与常见密钥前缀）。
+- 打包发布前会强制执行安全扫描（`npm run security:scan`），扫描失败将阻止打包。
+
 首次激活时，扩展还会自动创建包含常见知识点入门章节的 `docs/ai-faq.md`。
 
 ---
@@ -153,6 +159,7 @@ npm install
 npm run compile   # 单次构建
 npm run watch     # 增量监听构建
 npm run lint      # ESLint
+npm run security:scan
 ```
 
 在 VS Code 中按 **F5** 可打开扩展开发宿主进行手动测试。

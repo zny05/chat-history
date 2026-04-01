@@ -2,7 +2,7 @@
   "name": "chat-history",
   "displayName": "AI Archive: Chat History",
   "description": "Archive and organize Copilot Chat history into project markdown files.",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "publisher": "zny05",
   "icon": "chat-history.png",
   "engines": {
@@ -84,7 +84,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
-    "package": "vsce package"
+    "security:scan": "node scripts/security-scan.js",
+    "package": "npm run security:scan && vsce package"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

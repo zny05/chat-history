@@ -2,6 +2,31 @@
 
 更新日志（中英双语）
 
+## [4.0.0] - 2026-04-01
+
+### Security / 安全
+
+- **Automatic secret masking on save**: All chat transcripts are now passed through `maskSensitiveText()` before being written to disk. Tokens (GitHub OAuth/PAT, OpenAI `sk-`, AWS AKIA, Bearer headers) and generic `api_key/password/secret` assignments are replaced with `REDACTED`.
+  **保存时自动掩码敏感信息**：所有对话转录内容在写入磁盘前均经过 `maskSensitiveText()` 处理，GitHub Token、OpenAI Key、AWS 密钥、Bearer 头以及通用 `api_key/password/secret` 赋值均替换为 `REDACTED`。
+
+- **Auto .gitignore protection**: When saving a chat session, the extension automatically adds the archive destination directory (`docs/`) to the workspace `.gitignore`, preventing accidental commit or push of chat history files.
+  **自动写入 .gitignore 保护**：保存对话时，扩展自动将归档目标目录（`docs/`）添加到工作区 `.gitignore`，防止聊天记录被意外提交或推送。
+
+- **Pre-publish mandatory security scan**: `npm run package` now runs `scripts/security-scan.js` before packaging. If any secrets are detected, the build fails immediately.
+  **发布前强制安全扫描**：`npm run package` 打包前会自动执行 `scripts/security-scan.js`，检测到明文密钥即中止打包。
+
+- **Machine-level Git pre-push hook**: A global Git hooks path (`~/.git-hooks/pre-push`) is configured to scan for secret patterns before every push on any new or existing repository on this machine.
+  **机器级 Git pre-push 钩子**：全局 Git 钩子路径（`~/.git-hooks/pre-push`）已配置，对本机上任意新建或现有仓库在每次 push 前自动扫描密钥模式。
+
+- **Historical token remediation**: All committed plaintext `gho_` OAuth tokens in the repository have been replaced with `REDACTED` across docs and source files.
+  **历史 token 补救**：仓库中所有已提交的明文 `gho_` OAuth token 均已替换为 `REDACTED`。
+
+- **Security utilities module**: Added `src/utils/securityUtils.ts` with `maskSensitiveText()` as a reusable, tested masking utility shared across commands.
+  **安全工具模块**：新增 `src/utils/securityUtils.ts`，提供可复用的 `maskSensitiveText()` 掩码函数，供所有命令模块共用。
+
+- **Security tutorial doc**: Added `docs/git-security-tutorial.md` — a teaching-level guide covering global pre-push hooks, token revocation, `.gitignore` best practices, and secret scanning for developers.
+  **安全教程文档**：新增 `docs/git-security-tutorial.md`，涵盖全局 pre-push 钩子配置、Token 撤销、`.gitignore` 最佳实践及密钥扫描的教学级文档。
+
 ## [3.0.1] - 2026-04-01
 
 ### Changed / 变更

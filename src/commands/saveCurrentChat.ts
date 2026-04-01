@@ -10,8 +10,10 @@ import {
   writeFile,
   appendFile,
   readFileOrNull,
+  ensureGitignoreContains,
 } from '../utils/fileUtils';
 import { analyzeTranscript } from '../utils/transcriptAnalyzer';
+import { maskSensitiveText } from '../utils/securityUtils';
 
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
@@ -296,20 +298,31 @@ export async function saveCurrentChat(): Promise<void> {
   // 8. Determine file path
   const now = new Date();
   const baseDir = config.get<string>('baseDir', getBaseDir());
-  const topicSlug = slugify(topic.trim()).slice(0, 40).replace(/-+$/, '');
+  ensureGitignoreContains(root, baseDir);
+  const maskedTopic = maskSensitiveText(topic.trim());
+  const maskedProjectTag = maskSensitiveText(projectTag?.trim() ?? '');
+  const maskedKeywords = maskSensitiveText(keywords?.trim() ?? '');
+  const topicSlug = slugify(maskedTopic).slice(0, 40).replace(/-+$/, '');
   const timestamp = fileTimestamp(now);
   const fileName = `${timestamp}_${topicSlug || 'session'}.md`;
   const filePath = path.join(root, baseDir, fileName);
 
+  const maskedSummary = maskSensitiveText(summary?.trim() ?? '');
+  const maskedActionItems = maskSensitiveText(actionItems?.trim() ?? '');
+  const maskedTranscript = maskSensitiveText(
+    decodeUriEncodedPaths(autoCapturedTranscript.trim())
+  );
+  const maskedRawNotes = maskSensitiveText(rawNotes?.trim() ?? '');
+
   // 9. Build content
   const block = buildSessionBlock(
-    topic.trim(),
-    projectTag?.trim() ?? '',
-    keywords?.trim() ?? '',
-    summary?.trim() ?? '',
-    actionItems?.trim() ?? '',
-    decodeUriEncodedPaths(autoCapturedTranscript.trim()),
-    rawNotes?.trim() ?? '',
+    maskedTopic,
+    maskedProjectTag,
+    maskedKeywords,
+    maskedSummary,
+    maskedActionItems,
+    maskedTranscript,
+    maskedRawNotes,
     projectName,
     now
   );

@@ -156,3 +156,28 @@ export function findMarkdownFiles(dir: string): string[] {
   }
   return results;
 }
+
+/**
+ * Ensures a relative path is listed in .gitignore at workspace root.
+ */
+export function ensureGitignoreContains(root: string, relativePath: string): void {
+  const gitignorePath = path.join(root, '.gitignore');
+  const normalized = relativePath.replace(/\\/g, '/').replace(/^\.\//, '');
+  const entry = normalized.endsWith('/') ? normalized : `${normalized}/`;
+
+  let content = '';
+  if (fs.existsSync(gitignorePath)) {
+    content = fs.readFileSync(gitignorePath, 'utf8');
+  }
+
+  const lines = content.split(/\r?\n/).map((l) => l.trim());
+  const hasEntry = lines.includes(entry) || lines.includes(normalized);
+  if (hasEntry) {
+    return;
+  }
+
+  const prefix = content.length > 0 && !content.endsWith('\n') ? '\n' : '';
+  const note = '# Added by AI Archive to prevent chat history leaks';
+  const appendText = `${prefix}${note}\n${entry}\n`;
+  fs.appendFileSync(gitignorePath, appendText, 'utf8');
+}

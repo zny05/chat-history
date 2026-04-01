@@ -16,6 +16,12 @@ AI-assisted development sessions.
 | **AI Archive: Open Session Index** | Open (or create) `docs/ai-sessions/README.md` |
 | **AI Archive: Search Archives** | Search all session files and open the matching one |
 
+Security defaults:
+
+- The archive target directory is automatically added to `.gitignore` when saving.
+- Sensitive values in transcript content are masked before writing (`password`, `token`, `api key`, common key prefixes).
+- Packaging runs a mandatory secret scan (`npm run security:scan`) before creating VSIX.
+
 On first activation the extension also bootstraps `docs/ai-faq.md` with
 starter sections for recurring knowledge.
 
@@ -166,6 +172,7 @@ npm install
 npm run compile   # one-off build
 npm run watch     # incremental watch build
 npm run lint      # ESLint
+npm run security:scan
 ```
 
 Press **F5** in VS Code to open an Extension Development Host for manual
