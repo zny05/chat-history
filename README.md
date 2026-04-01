@@ -12,15 +12,16 @@ AI-assisted development sessions.
 
 | Command | Description |
 |---|---|
-| **AI Archive: Save Current Chat** | Prompt for session details and write a structured markdown file |
-| **AI Archive: Open Session Index** | Open (or create) `docs/ai-sessions/README.md` |
-| **AI Archive: Search Archives** | Search all session files and open the matching one |
+| **AI Archive: Save Current Chat** | Auto-capture the current Copilot Chat, pre-fill metadata, mask secrets, and save a structured markdown archive |
+| **AI Archive: Open Session Index** | Regenerate and open `docs/ai-sessions-index.md` from the current archived sessions |
+| **AI Archive: Search Archives** | Suggest indexed terms, search archived sessions and FAQ, and jump to matching lines |
 
 Security defaults:
 
 - The archive target directory is automatically added to `.gitignore` when saving.
-- Sensitive values in transcript content are masked before writing (`password`, `token`, `api key`, common key prefixes).
+- Sensitive values in transcript content and metadata are masked before writing (`password`, `token`, `api key`, bearer tokens, common key prefixes).
 - Packaging runs a mandatory secret scan (`npm run security:scan`) before creating VSIX.
+- Session files use a compact timestamped filename format directly under `docs/`.
 
 On first activation the extension also bootstraps `docs/ai-faq.md` with
 starter sections for recurring knowledge.
@@ -56,38 +57,59 @@ This script will:
 
 ### AI Archive: Save Current Chat
 
-Walks you through a series of input prompts:
+The command first tries to auto-capture the active Copilot Chat transcript, then analyzes it and pre-fills the archive form for you.
 
-- **Topic** *(required)* — becomes the file name (slugified).
-- **Project tag** *(optional)* — e.g. `backend`, `feature/auth`.
-- **Keywords** *(optional)* — comma-separated.
-- **Summary / final decision** *(optional)*.
-- **Action items** *(optional)* — separate multiple items with `; `.
-- **Raw notes** *(optional)* — any additional context.
+Auto-filled fields include:
+
+- **Topic** *(required)* — used to derive the short filename slug.
+- **Project tag** *(optional)* — inferred from paths/modules when possible.
+- **Keywords** *(optional)* — extracted from code terms, file names, and tech stack hints.
+- **Summary / final decision** *(optional)* — inferred from the transcript.
+- **Action items** *(optional)* — inferred from TODO-style and imperative lines.
+- **Raw notes** *(optional)* — still free-form and left empty by default.
 
 By default, the command first tries to auto-capture the active Copilot Chat transcript.
 If capture fails, it opens a retry flow (`Retry Capture` / `Paste Clipboard`) so you don't accidentally save an empty archive.
 
+Before writing the file, the extension also:
+
+- Decodes URI-encoded local paths so Chinese and other Unicode paths stay readable.
+- Masks common secrets in both transcript content and metadata.
+- Ensures the archive directory is ignored by Git.
+
 The session is written to:
 
 ```
-docs/ai-sessions/YYYY-MM/<topic>.md
+docs/yyyy_mm_dd_hhmmss_<short-topic>.md
 ```
+
+The filename slug is trimmed to keep names manageable, and the timestamp keeps files sortable.
 
 If the file already exists and `aiArchive.appendOnConflict` is `true`
 (default), a separator block is appended rather than overwriting the file.
 
 ### AI Archive: Open Session Index
 
-Opens `docs/ai-sessions/README.md`.  The file is created with usage
-instructions and folder-structure conventions if it does not yet exist.
+Regenerates `docs/ai-sessions-index.md` from the current timestamped session files
+stored directly under `docs/`, then opens the index file.
+
+The index includes:
+
+- Archive date
+- Topic
+- Project tag
+- Keywords
 
 ### AI Archive: Search Archives
 
-Prompts for search text, then searches all `*.md` files under
-`docs/ai-sessions/` (and `docs/ai-faq.md`).  Results are shown in a
-QuickPick list with the relative file path and first matching line snippet.
-Selecting a result opens the file and scrolls to the matching line.
+Searches the timestamped session files in `docs/` and `docs/ai-faq.md`.
+
+Behavior:
+
+- Suggests keywords, tags, and topics extracted from existing archives.
+- Supports choosing a suggested term or entering a custom query.
+- Returns all matching lines, not just the first match per file.
+- Opens the selected result and scrolls to the matching line.
 
 ---
 
@@ -96,11 +118,9 @@ Selecting a result opens the file and scrolls to the matching line.
 ```
 <workspace-root>/
 └── docs/
-    ├── ai-faq.md                  ← FAQ / recurring knowledge base
-    └── ai-sessions/
-        ├── README.md              ← session index
-        └── YYYY-MM/
-            └── <topic>.md         ← individual session archive
+  ├── ai-faq.md                               ← FAQ / recurring knowledge base
+  ├── ai-sessions-index.md                    ← auto-generated archive index
+  └── yyyy_mm_dd_hhmmss_<short-topic>.md      ← individual session archive
 ```
 
 ---
@@ -112,7 +132,7 @@ All settings are under the `aiArchive` namespace in VS Code settings:
 | Setting | Default | Description |
 |---|---|---|
 | `aiArchive.baseDir` | `"docs"` | Base directory relative to workspace root |
-| `aiArchive.sessionsDirName` | `"ai-sessions"` | Sessions sub-directory name |
+| `aiArchive.sessionsDirName` | `"ai-sessions"` | Legacy setting kept for backward compatibility |
 | `aiArchive.faqFileName` | `"ai-faq.md"` | FAQ file name |
 | `aiArchive.appendOnConflict` | `true` | Append to existing file instead of overwriting |
 | `aiArchive.autoCaptureFromChat` | `true` | Try to auto-capture Copilot Chat transcript before prompts |
@@ -146,6 +166,12 @@ Each session file uses this structure:
 
 ---
 
+## Copilot Chat Transcript
+
+<masked-transcript>
+
+---
+
 ## Raw Notes
 
 <raw-notes>
@@ -160,8 +186,8 @@ Each session file uses this structure:
   best-effort via VS Code chat copy commands / clipboard flow.
 - If your VS Code/Copilot build does not support chat copy commands, use
   `Paste Clipboard` in the save flow after copying chat content manually.
-- Searching is plain-text, case-insensitive, and returns the first matching
-  line per file.
+- Search is plain-text and case-insensitive.
+- Secret masking uses practical pattern matching, so it reduces leakage risk but should not be treated as a perfect DLP system.
 
 ---
 
